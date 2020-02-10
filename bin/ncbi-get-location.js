@@ -8,10 +8,8 @@ const parser = require('xml2json');
 let objectCount = 0;
 let searchResult;
 let resultObj;
-let xxx;
 // start with clear
 //console.clear();
-
 
 // Configuration
 
@@ -23,9 +21,7 @@ let srcFileExists = srcFilePath && srcFilePath.length > 0 && fs.existsSync(srcFi
 let destFilePath = process.argv[3];
 let destFileExists = destFilePath && destFilePath.length > 0;
 
-
 initialize();
-
 
 function initialize() {
 	createDestFileFromNcbi(srcFilePath, destFilePath)
@@ -56,11 +52,10 @@ async function createDestFileFromNcbi(sourceFilePath, destinationFilePath) {
 
 			//console.log(ncbiDataObj);
 			let mergedRecord = sourceRecord;
-			//console.log("harhahrhar", mergedRecord);
 
 			mergedRecord['country'] = ncbiDataObj.country;
-			mergedRecord['genus'] = ncbiDataObj.gName;
-			mergedRecord['species'] = ncbiDataObj.sName;
+			mergedRecord['taxname'] = ncbiDataObj.tName;
+
 			//console.log('record ' + i);
 			// console.log(mergedRecord);
 			mergedRecordArray.push(mergedRecord);
@@ -69,11 +64,8 @@ async function createDestFileFromNcbi(sourceFilePath, destinationFilePath) {
 		for(let i = 0; i < mergedRecordArray.length; i++){
 			let mergedRecord = mergedRecordArray[i];
 
-			let hasGenus = mergedRecord.genus && mergedRecord.genus.length > 0;
-			if(!hasGenus){ mergedRecord['genus'] = "" }
-
-			let hasSpecies = mergedRecord.species && mergedRecord.species.length > 0;
-			if(!hasSpecies){ mergedRecord['species'] = "" }
+			let hasTname = mergedRecord.taxname && mergedRecord.taxname.length > 0;
+			if(!hasTname){ mergedRecord['taxname'] = "Name_Not_Found" }
 
 			let hasCountry = mergedRecord.country && mergedRecord.country.length > 0;
 			if(!hasCountry){ mergedRecord['country'] = "Location_Not_Found" }
@@ -81,7 +73,7 @@ async function createDestFileFromNcbi(sourceFilePath, destinationFilePath) {
 			let hasSequence = mergedRecord.sequence && mergedRecord.sequence.length > 0;
 			if(!hasSequence){ mergedRecord['sequence'] = "" }
 
-			fastaResultString += `>${mergedRecord.accessionNo}.${mergedRecord.version} ${mergedRecord['genus']} ${mergedRecord['species']} ${mergedRecord.country}\n${mergedRecord.sequence}\n`;
+			fastaResultString += `>${mergedRecord.accessionNo}.${mergedRecord.version} ${mergedRecord['taxname']} ${mergedRecord.country}\n${mergedRecord.sequence}\n`;
 		}
 		return fastaResultString;
 	} catch(error) {
@@ -170,7 +162,7 @@ async function fetchNcbiData(sourceRecord, recordNo, recordMaxNo){
 		let accession = `${sourceRecord.accessionNo}.${sourceRecord.version}`;
 		let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide&id=${accession}&rettype=json&complexity=3`;
 		//console.log(`Record ${recordNo}/${recordMaxNo}:`);
-		// console.log(`fetching ${url}`);
+		//  console.log(`fetching ${url}`);
 		let responseXml = await axios.get(url);
 		let responseXmlData = responseXml.data;
 		let responseJsonObj = parser.toJson(responseXmlData, { object: true });
@@ -188,21 +180,18 @@ async function convertNcbiData(ncbiData){
 		let subSourceArray = searchResult;
 		searchResult = null;
 
-		await searchObject('BinomialOrgName_genus', ncbiData);
-		subSourceArray1 = searchResult;
-		searchResult = null;
-
-		await searchObject('BinomialOrgName_species', ncbiData);
-		subSourceArray2 = searchResult;
+		await searchObject('Org-ref_taxname', ncbiData);
+		subSourceTaxNameArray = searchResult;
 		searchResult = null;
 
 
 		let country;
 		resultObj = {
 			country: "",
-			gName: subSourceArray1, //genus name
-			sName: subSourceArray2  //species name
+			tName: subSourceTaxNameArray
 		};
+
+		 // console.log(resultObj);
 
 		for(let i = 0; i < subSourceArray.length; i++){
 			let subSource = subSourceArray[i];
