@@ -14,7 +14,12 @@
   "author": "Matthew Stewart",
   "license": "WTFPL",
   "dependencies": {
-    "axios": "^0.18.0",
+    "@hapi/hapi": "^18.4.0",
+    "@hapi/hoek": "^8.5.0",
+    "axios": "^0.18.1",
+    "install": "^0.13.0",
+    "node-expat": "^2.3.18",
+    "npm": "^6.13.2",
     "xml2json": "^0.11.2"
   }
 }

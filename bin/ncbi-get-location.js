@@ -49,13 +49,12 @@ async function createDestFileFromNcbi(sourceFilePath, destinationFilePath) {
 			let sourceRecord = sourceFileJsonArray[i];
 			let ncbiData = await fetchNcbiData(sourceRecord, (i + 1), sourceFileJsonArray.length);
 			let ncbiDataObj = await convertNcbiData(ncbiData);
-
-			//console.log(ncbiDataObj);
+				// console.log(ncbiDataObj);
 			let mergedRecord = sourceRecord;
 
 			mergedRecord['country'] = ncbiDataObj.country;
 			mergedRecord['taxname'] = ncbiDataObj.tName;
-
+			// console.log(mergedRecord['taxname']);
 			//console.log('record ' + i);
 			// console.log(mergedRecord);
 			mergedRecordArray.push(mergedRecord);
@@ -73,7 +72,7 @@ async function createDestFileFromNcbi(sourceFilePath, destinationFilePath) {
 			let hasSequence = mergedRecord.sequence && mergedRecord.sequence.length > 0;
 			if(!hasSequence){ mergedRecord['sequence'] = "" }
 
-			fastaResultString += `>${mergedRecord.accessionNo}.${mergedRecord.version} ${mergedRecord['taxname']} ${mergedRecord.country}\n${mergedRecord.sequence}\n`;
+			fastaResultString += `>${mergedRecord.accessionNo}.${mergedRecord.version} ${mergedRecord['taxname']} ${mergedRecord.country}\n${mergedRecord.sequence}`;
 		}
 		return fastaResultString;
 	} catch(error) {
@@ -184,24 +183,24 @@ async function convertNcbiData(ncbiData){
 		subSourceTaxNameArray = searchResult;
 		searchResult = null;
 
-
 		let country;
 		resultObj = {
 			country: "",
 			tName: subSourceTaxNameArray
 		};
 
-		 // console.log(resultObj);
+		  // console.log(resultObj);
 
-		for(let i = 0; i < subSourceArray.length; i++){
-			let subSource = subSourceArray[i];
-			//console.log(subSource);
-			if(subSource['SubSource_subtype']['value'] === 'country'){
-				resultObj.country = subSource['SubSource_name'];
-			}
-		}
+		  if (subSourceArray) {
+			  for (let i = 0; i < subSourceArray.length; i++) {
+				  let subSource = subSourceArray[i];
+				  //console.log(subSource);
+				  if (subSource['SubSource_subtype']['value'] === 'country') {
+					  resultObj.country = subSource['SubSource_name'];
+				  }
+			  }
+		  }
 
-		//console.log(resultObj);
 		return resultObj;
 	} catch(error) {
 		return error;
