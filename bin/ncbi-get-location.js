@@ -186,8 +186,12 @@ async function convertNcbiData(ncbiData){
 		let country;
 		resultObj = {
 			country: "",
-			tName: subSourceTaxNameArray
+			tName: ""
 		};
+
+		if (subSourceTaxNameArray){
+			resultObj.tName = subSourceTaxNameArray;
+		}
 
 		  // console.log(resultObj);
 
